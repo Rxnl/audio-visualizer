@@ -1,6 +1,6 @@
 # Visualizer for SpotiKit
 
-A port of Konsl's Spicetify Visualizer that includes NCS, Spectrum, and Debug modes. [Original project](https://github.com/Konsl/spicetify-visualizer)
+A Spotify visualizer with NCS, Spectrum, and Debug modes. Ported to SpotiKit by rxnl from Konsl's Spicetify Visualizer. [Original project](https://github.com/Konsl/spicetify-visualizer)
 
 ## Installation
 
@@ -15,6 +15,7 @@ The archive contains everything you need to install the app. [SpotiKit custom ap
 
 - The visualizer uses Spotify's audio analysis and follows the track's playback position. If audio analysis is unavailable, try another track.
 - NCS requires WebGL2 with support for rendering to floating-point textures. Spectrum and Debug use Canvas 2D.
+- In NCS mode, open the **⋯** menu to choose a custom sphere color or enable **Use cover art color**. The sphere slows down smoothly when you pause playback.
 - Spectrum uses rhythm and pitch data. When rhythm data is unavailable, it displays 12 bars based on pitch.
 - Debug displays beats, bars, loudness, analysis confidence, timbre, pitch, and rhythm when available. Vocal activity and three-band waveform plots are unavailable in this port.
 - Opening the visualizer in a separate window requires pop-up or Picture-in-Picture support in the Spotify client.

@@ -1,3 +1,4 @@
+/*! SpotiKit port by rxnl. Based on Spicetify Visualizer by Konsl (MIT). */
 var We=SpotiKit.React,y=We,{createContext:Ve,useCallback:N,useContext:fe,useEffect:X,useMemo:le,useRef:Ce,useState:O}=We;var Xe=`.spotikit-app:has(> .spotikit-visualizer) {\r
 	position: relative;\r
 	min-height: 100%;\r
