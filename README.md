@@ -1,26 +1,26 @@
-# Visualizer для SpotiKit
+# Visualizer for SpotiKit
 
-Порт [Spicetify Visualizer](https://github.com/Konsl/spicetify-visualizer) от Konsl. Включает NCS, Spectrum и Debug.
+A port of Konsl's Spicetify Visualizer that includes NCS, Spectrum, and Debug modes. [Original project](https://github.com/Konsl/spicetify-visualizer)
 
-## Установка
+## Installation
 
-1. Распакуйте архив.
-2. В приложении SpotiKit откройте **Developer → Custom Apps**. Перенесите туда папку `visualizer` целиком. Путь к манифесту должен получиться таким: `%APPDATA%\SpotiKit\Custom Apps\visualizer\spotikit.json`.
-3. В SpotiKit нажмите **Apply to Spotify**.
-4. В Spotify нажмите **Visualizer** в верхней панели рядом с Marketplace и включите музыкальный трек. Кнопка **⋯** открывает выбор режима, полноэкранный режим и отдельное окно.
+1. Extract the archive.
+2. In SpotiKit, open **Developer → Custom Apps** and copy the entire `visualizer` folder there. The manifest should be at `%APPDATA%\SpotiKit\Custom Apps\visualizer\spotikit.json`.
+3. In SpotiKit, click **Apply to Spotify**.
+4. In Spotify, click **Visualizer** in the top bar next to Marketplace, then play a track. Use the **⋯** menu to switch modes, enter fullscreen, or open the visualizer in a separate window.
 
-Для установки достаточно файлов из архива. [Документация SpotiKit о пользовательских приложениях](https://spotikit.com/docs/custom-apps).
+The archive contains everything you need to install the app. [SpotiKit custom apps documentation](https://spotikit.com/docs/custom-apps)
 
-## Особенности
+## Features
 
-- Визуализация синхронизирована с позицией трека и использует аудиоанализ Spotify. Если Spotify не возвращает анализ для трека, попробуйте другой трек.
-- NCS требует WebGL2 и поддержки отрисовки в текстуры с плавающей точкой. Spectrum и Debug используют Canvas 2D.
-- Spectrum использует данные о ритме и высоте звука. Для треков без данных о ритме строит 12 полос по высоте звука.
-- Debug показывает доли, такты, громкость, уверенность анализа, тембр, высоту звука и ритм при наличии этих данных. Графики вокальной активности и трёхполосной волны из оригинала в порт не вошли.
-- Отдельное окно зависит от поддержки всплывающих окон или Picture-in-Picture в клиенте Spotify.
+- The visualizer uses Spotify's audio analysis and follows the track's playback position. If audio analysis is unavailable, try another track.
+- NCS requires WebGL2 with support for rendering to floating-point textures. Spectrum and Debug use Canvas 2D.
+- Spectrum uses rhythm and pitch data. When rhythm data is unavailable, it displays 12 bars based on pitch.
+- Debug displays beats, bars, loudness, analysis confidence, timbre, pitch, and rhythm when available. Vocal activity and three-band waveform plots are unavailable in this port.
+- Opening the visualizer in a separate window requires pop-up or Picture-in-Picture support in the Spotify client.
 
-## Сборка из исходников
+## Building from source
 
-В папке `visualizer` выполните `npm install`, затем `npm run build`. Сборка обновит `index.js`. Приложение использует React из SpotiKit.
+In the `visualizer` folder, run `npm install` followed by `npm run build`. The build updates `index.js`. The app uses SpotiKit's React runtime.
 
-Оригинал распространяется по лицензии MIT. См. `LICENSE` и `LICENSE-fflate`.
+The original project is distributed under the MIT License. See [LICENSE](LICENSE) and [LICENSE-fflate](LICENSE-fflate).
