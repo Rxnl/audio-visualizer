@@ -9,6 +9,7 @@ declare const SpotiKit: {
 	ReactDOM: typeof import("react-dom/client");
 	Player: {
 		track: VisualizerTrack | null;
+		isPlaying: boolean;
 		position: number;
 		on(event: "track", listener: () => void): () => void;
 	};
