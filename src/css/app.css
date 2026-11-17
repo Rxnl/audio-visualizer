@@ -32,6 +32,22 @@
 	top: 12px;
 	right: 12px;
 }
+.spotikit-visualizer-fallback {
+	position: absolute;
+	top: 16px;
+	inset-inline: 60px;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	text-align: center;
+	font-size: 13px;
+	text-shadow: 0 1px 4px #000;
+}
+.spotikit-visualizer-status button + button {
+	margin-inline-start: 8px;
+}
 .spotikit-visualizer-controls summary {
 	display: grid;
 	place-items: center;
@@ -85,6 +101,18 @@
 }
 .spotikit-visualizer :is(button, select):hover {
 	background: #484848;
+}
+.spotikit-visualizer button.spotikit-visualizer-retry {
+	border: 0;
+	border-radius: 0;
+	padding: 0;
+	background: transparent;
+	text-decoration: underline;
+	text-underline-offset: 0.18em;
+}
+.spotikit-visualizer-retry:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 3px;
 }
 .spotikit-visualizer:fullscreen.spotikit-visualizer--idle:not(:has(details[open], :focus-visible)) {
 	cursor: none;

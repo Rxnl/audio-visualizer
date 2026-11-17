@@ -118,7 +118,9 @@ type RendererState =
 			blurYTexture: WebGLTexture;
 	  };
 
-export default function NCSVisualizer(props: RendererProps) {
+export default function NCSVisualizer(props: Omit<RendererProps, "trackData"> & {
+	trackData: { color: string; audioAnalysis?: SpotifyAudioAnalysis };
+}) {
 	const onError = useContext(ErrorHandlerContext);
 
 	const audioAnalysis = props.trackData.audioAnalysis;
@@ -158,7 +160,7 @@ export default function NCSVisualizer(props: RendererProps) {
 		return amplitudeCurve;
 	}, [audioAnalysis]);
 
-	const seed = audioAnalysis.meta?.timestamp ?? 0;
+	const seed = audioAnalysis?.meta?.timestamp ?? 0;
 
 	const onInit = useCallback((gl: WebGL2RenderingContext | null): RendererState => {
 		if (!gl) {

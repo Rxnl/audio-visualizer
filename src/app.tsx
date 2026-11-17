@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import css from "./css/app.css";
 import LoadingIcon from "./components/LoadingIcon";
+import NCSVisualizer from "./components/renderer/NCSVisualizer";
 import { ErrorHandlerContext } from "./error";
 import { useFullscreenElement, useMouseRecentlyMoved } from "./hooks";
 import { loadTrackData } from "./loaders";
 import { DEFAULT_COLOR, RENDERERS, RendererId, TrackData } from "./defs";
 import { AudioSyncManager } from "./audio-sync";
 
-type LoadState = { uri: string; data?: TrackData; error?: string };
+type LoadState = { uri: string; data: Awaited<ReturnType<typeof loadTrackData>> };
 
 const SPHERE_COLOR_KEY = "spotikit-visualizer.sphere-color";
 const USE_COVER_COLOR_KEY = "spotikit-visualizer.use-cover-color";
@@ -76,9 +77,11 @@ export default function Visualizer({ popup = false, initialMode }: {
 	const Renderer = RENDERERS[renderer].renderer;
 	const trackData = current?.data;
 	const pickerColor = customColor ?? trackData?.color ?? DEFAULT_COLOR;
-	const rendererData = trackData && renderer === "ncs" && !useCoverColor
-		? { ...trackData, color: pickerColor }
-		: trackData;
+	const color = renderer === "ncs" && !useCoverColor ? pickerColor : trackData?.color ?? DEFAULT_COLOR;
+	const rendererData: TrackData | undefined = trackData?.audioAnalysis
+		? { audioAnalysis: trackData.audioAnalysis, color }
+		: undefined;
+	const missingAnalysis = supported && current !== undefined && !rendererData;
 
 	useEffect(() => {
 		const updateTrack = () => setTrack(SpotiKit.Player.track);
@@ -91,13 +94,7 @@ export default function Visualizer({ popup = false, initialMode }: {
 		if (!track || !supported) return;
 		let active = true;
 		setResult(undefined);
-		loadTrackData(track).then(
-			data => { if (active) setResult({ uri, data }); },
-			error => {
-				console.warn("[Visualizer] Audio analysis unavailable", error);
-				if (active) setResult({ uri, error: "Аудиоанализ недоступен для этого трека." });
-			}
-		);
+		loadTrackData(track).then(data => { if (active) setResult({ uri, data }); });
 		return () => { active = false; };
 	}, [uri, supported, attempt]);
 
@@ -154,9 +151,9 @@ export default function Visualizer({ popup = false, initialMode }: {
 		}
 	}
 
-	const message = !uri ? "Включите трек, чтобы запустить визуализатор."
-		: !supported ? "Визуализация доступна для музыкальных треков."
-		: current?.error ?? renderError;
+	const message = !uri ? "Play a track to start the visualizer."
+		: !supported ? "Visualization is available for music tracks."
+		: renderError ?? (missingAnalysis && renderer !== "ncs" ? "Audio analysis is unavailable for this track." : undefined);
 	const loading = supported && !current;
 	return (
 		<div
@@ -174,11 +171,25 @@ export default function Visualizer({ popup = false, initialMode }: {
 					<Renderer key={`${uri}:${renderer}`} isEnabled trackData={rendererData} />
 				</ErrorHandlerContext.Provider>
 			)}
-			{loading && <div className="spotikit-visualizer-status" role="status" aria-label="Загрузка аудиоанализа"><LoadingIcon /></div>}
+			{missingAnalysis && renderer === "ncs" && !renderError && (
+				<ErrorHandlerContext.Provider value={setRenderError}>
+					<NCSVisualizer key={uri} isEnabled trackData={{ color }} />
+					<div className="spotikit-visualizer-fallback">
+						<span role="status">Audio analysis unavailable · Ambient motion</span>
+						<button className="spotikit-visualizer-retry" type="button" onClick={retry}>Retry</button>
+					</div>
+				</ErrorHandlerContext.Provider>
+			)}
+			{loading && <div className="spotikit-visualizer-status" role="status" aria-label="Loading audio analysis"><LoadingIcon /></div>}
 			{!loading && message && (
 				<div className="spotikit-visualizer-status" role="status">
 					<p>{message}</p>
-					{current?.error && <button type="button" onClick={retry}>Повторить</button>}
+					{missingAnalysis && !renderError && (
+						<>
+							<button className="spotikit-visualizer-retry" type="button" onClick={retry}>Retry</button>
+							<button type="button" onClick={() => selectRenderer("ncs")}>Use ambient NCS</button>
+						</>
+					)}
 				</div>
 			)}
 			<details className="spotikit-visualizer-controls" ref={settings}>
