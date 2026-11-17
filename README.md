@@ -2,6 +2,8 @@
 
 A Spotify visualizer with NCS, Spectrum, and Debug modes. Ported to SpotiKit by rxnl from Konsl's Spicetify Visualizer. [Original project](https://github.com/Konsl/spicetify-visualizer)
 
+![NCS Visualizer preview](preview.png)
+
 ## Installation
 
 1. Extract the archive.

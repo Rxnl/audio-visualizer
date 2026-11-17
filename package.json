@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "esbuild src/app.tsx --bundle --format=esm --target=chrome100 --minify --loader:.css=text --alias:react=./src/react.ts --legal-comments=none --banner:js=\"/*! SpotiKit port by rxnl. Based on Spicetify Visualizer by Konsl (MIT). */\" --outfile=index.js"
+    "build": "esbuild src/app.tsx --bundle --format=esm --target=chrome100 --minify --loader:.css=text --alias:react=./src/react.ts --legal-comments=none --banner:js=\"/*! SpotiKit port by rxnl. Based on Spicetify Visualizer by Konsl (MIT). Tested with Spotify 1.3.9.2055. */\" --outfile=index.js"
   },
   "dependencies": { "fflate": "0.8.2" },
   "devDependencies": {

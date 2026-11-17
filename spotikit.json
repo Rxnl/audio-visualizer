@@ -4,6 +4,7 @@
   "description": "Audio visualizer for the current Spotify track.",
   "preview": "preview.png",
   "readme": "README.md",
+  "spotify": "1.3.9.2055",
   "authors": [{ "name": "rxnl", "url": "https://github.com/Rxnl" }],
   "tags": ["visualizer"],
   "main": "index.js",
