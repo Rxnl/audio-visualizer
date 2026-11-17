@@ -32,36 +32,61 @@ type CanvasData = {
 
 const NOISE_SPEED = 0.75;
 const PAUSE_COAST_MS = 900;
+const RESUME_BLEND_MS = 180;
 
 type MotionState = {
-	wasPlaying: boolean;
-	pauseStartedAt: number;
-	pauseSpeed: number;
+	wasPlaying?: boolean;
+	pause?: { time: number; phase: number; speed: number };
+	resume?: { time: number; amplitude: number };
+	amplitude: number;
+	phase: number;
 	offset: number;
 };
 
-function noiseOffsetForFrame(
+function updateMotion(
 	motion: MotionState,
 	time: number,
 	isPlaying: boolean,
-	audioOffset: number,
-	speed: number
-): number {
-	if (motion.wasPlaying && !isPlaying) {
-		motion.pauseStartedAt = time;
-		motion.pauseSpeed = speed;
+	curve: CurveEntry[]
+) {
+	if (!isPlaying && motion.wasPlaying !== undefined) {
+		if (motion.wasPlaying) {
+			// Spotify can correct the playhead on pause. Coast from the frame already on screen.
+			motion.pause = {
+				time,
+				phase: motion.phase,
+				speed: NOISE_SPEED * (0.5 + motion.amplitude)
+			};
+		}
+		if (motion.pause) {
+			const elapsed = Math.min(time - motion.pause.time, PAUSE_COAST_MS) / PAUSE_COAST_MS;
+			const coast = motion.pause.speed * (PAUSE_COAST_MS / 1000) * elapsed * (1 - elapsed / 2);
+			motion.phase = motion.pause.phase + coast;
+		}
+		motion.wasPlaying = false;
+		return;
 	}
 
-	const elapsed = Math.min(time - motion.pauseStartedAt, PAUSE_COAST_MS) / PAUSE_COAST_MS;
-	// Integrate a linear slowdown so the noise phase settles without snapping back on resume.
-	const coast = motion.pauseSpeed * (PAUSE_COAST_MS / 1000) * elapsed * (1 - elapsed / 2);
-	if (isPlaying) {
-		motion.offset += coast;
-		motion.pauseSpeed = 0;
+	const progress = AudioSyncManager.getProgress();
+	const amplitude = sampleAmplitudeMovingAverage(curve, progress, 0.15);
+	const audioOffset = NOISE_SPEED * (0.5 * progress + sampleAccumulatedIntegral(curve, progress));
+	if (motion.wasPlaying === false && isPlaying) {
+		motion.offset = motion.phase - audioOffset;
+		motion.resume = { time, amplitude: motion.amplitude };
+		motion.pause = undefined;
+		motion.wasPlaying = true;
+		return;
 	}
 
+	if (motion.resume) {
+		const blend = Math.min((time - motion.resume.time) / RESUME_BLEND_MS, 1);
+		motion.amplitude = motion.resume.amplitude + (amplitude - motion.resume.amplitude) * blend;
+		if (blend === 1) motion.resume = undefined;
+	} else {
+		motion.amplitude = amplitude;
+	}
+	motion.phase = audioOffset + motion.offset;
 	motion.wasPlaying = isPlaying;
-	return audioOffset + motion.offset + (isPlaying ? 0 : coast);
 }
 
 type RendererState =
@@ -151,9 +176,14 @@ export default function NCSVisualizer(props: Omit<RendererProps, "trackData"> & 
 			}
 
 			const lastSegment = segments[segments.length - 1];
-			amplitudeCurve.push({
+			const end = {
 				x: lastSegment.start + lastSegment.duration,
 				y: decibelsToAmplitude(lastSegment.loudness_end)
+			};
+			const previous = amplitudeCurve[amplitudeCurve.length - 1];
+			amplitudeCurve.push({
+				...end,
+				accumulatedIntegral: (previous.accumulatedIntegral ?? 0) + integrateLinearSegment(previous, end)
 			});
 		}
 
@@ -307,7 +337,7 @@ export default function NCSVisualizer(props: Omit<RendererProps, "trackData"> & 
 			finalizeShader,
 			viewportSize: 0,
 			particleTextureSize: 0,
-			motion: { wasPlaying: false, pauseStartedAt: 0, pauseSpeed: 0, offset: 0 },
+			motion: { amplitude: 0, phase: 0, offset: 0 },
 
 			inPositionLoc,
 			inPositionLocDot,
@@ -407,17 +437,8 @@ export default function NCSVisualizer(props: Omit<RendererProps, "trackData"> & 
 	const onRender = useCallback((gl: WebGL2RenderingContext | null, data: CanvasData, state: RendererState, time: number) => {
 		if (state.isError || !gl) return;
 
-		const progress = AudioSyncManager.getProgress();
-
-		const uAmplitude = sampleAmplitudeMovingAverage(data.amplitudeCurve, progress, 0.15);
-		const audioOffset = NOISE_SPEED * (0.5 * progress + sampleAccumulatedIntegral(data.amplitudeCurve, progress));
-		const uNoiseOffset = noiseOffsetForFrame(
-			state.motion,
-			time,
-			SpotiKit.Player.isPlaying,
-			audioOffset,
-			NOISE_SPEED * (0.5 + uAmplitude)
-		);
+		updateMotion(state.motion, time, SpotiKit.Player.isPlaying, data.amplitudeCurve);
+		const { amplitude: uAmplitude, phase: uNoiseOffset } = state.motion;
 		const uSeed = data.seed;
 		const uDotCount = 322;
 		const uDotRadius = 0.9 / uDotCount;
