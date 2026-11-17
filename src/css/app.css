@@ -60,6 +60,19 @@
 	align-items: center;
 	justify-content: space-between;
 }
+.spotikit-visualizer-settings input[type="color"] {
+	width: 34px;
+	height: 28px;
+	padding: 2px;
+	border: 1px solid #717171;
+	border-radius: 6px;
+	background: transparent;
+	cursor: pointer;
+}
+.spotikit-visualizer-settings input[type="color"]:disabled {
+	opacity: 0.5;
+	cursor: default;
+}
 .spotikit-visualizer button,
 .spotikit-visualizer select {
 	border: 1px solid #717171;

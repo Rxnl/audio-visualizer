@@ -4,10 +4,45 @@ import LoadingIcon from "./components/LoadingIcon";
 import { ErrorHandlerContext } from "./error";
 import { useFullscreenElement, useMouseRecentlyMoved } from "./hooks";
 import { loadTrackData } from "./loaders";
-import { RENDERERS, RendererId, TrackData } from "./defs";
+import { DEFAULT_COLOR, RENDERERS, RendererId, TrackData } from "./defs";
 import { AudioSyncManager } from "./audio-sync";
 
 type LoadState = { uri: string; data?: TrackData; error?: string };
+
+const SPHERE_COLOR_KEY = "spotikit-visualizer.sphere-color";
+const USE_COVER_COLOR_KEY = "spotikit-visualizer.use-cover-color";
+const sphereColorChanges = new EventTarget();
+type SphereColorSettings = { customColor: string | null; useCoverColor: boolean };
+let sphereColorSettings: SphereColorSettings = { customColor: null, useCoverColor: true };
+try {
+	const saved = localStorage.getItem(SPHERE_COLOR_KEY);
+	const customColor = saved && /^#[0-9a-f]{6}$/i.test(saved) ? saved : null;
+	const useCoverColor = localStorage.getItem(USE_COVER_COLOR_KEY);
+	sphereColorSettings = {
+		customColor,
+		useCoverColor: useCoverColor === null ? customColor === null : useCoverColor !== "false"
+	};
+} catch {
+	// Keep the color available for the session when storage is disabled.
+}
+
+function subscribeToSphereColor(listener: () => void) {
+	sphereColorChanges.addEventListener("change", listener);
+	return () => sphereColorChanges.removeEventListener("change", listener);
+}
+
+function getSphereColorSettings() {
+	return sphereColorSettings;
+}
+
+function changeSphereColorSettings(settings: SphereColorSettings) {
+	sphereColorSettings = settings;
+	try {
+		localStorage.setItem(USE_COVER_COLOR_KEY, String(settings.useCoverColor));
+		if (settings.customColor !== null) localStorage.setItem(SPHERE_COLOR_KEY, settings.customColor);
+	} catch {}
+	sphereColorChanges.dispatchEvent(new Event("change"));
+}
 
 function initialRenderer(): RendererId {
 	try {
@@ -24,6 +59,7 @@ export default function Visualizer({ popup = false, initialMode }: {
 	initialMode?: RendererId;
 }) {
 	const [renderer, setRenderer] = useState(() => initialMode ?? initialRenderer());
+	const { customColor, useCoverColor } = React.useSyncExternalStore(subscribeToSphereColor, getSphereColorSettings);
 	const [track, setTrack] = useState(() => SpotiKit.Player.track);
 	const [result, setResult] = useState<LoadState>();
 	const [attempt, setAttempt] = useState(0);
@@ -38,6 +74,11 @@ export default function Visualizer({ popup = false, initialMode }: {
 	const supported = uri.startsWith("spotify:track:");
 	const current = result?.uri === uri ? result : undefined;
 	const Renderer = RENDERERS[renderer].renderer;
+	const trackData = current?.data;
+	const pickerColor = customColor ?? trackData?.color ?? DEFAULT_COLOR;
+	const rendererData = trackData && renderer === "ncs" && !useCoverColor
+		? { ...trackData, color: pickerColor }
+		: trackData;
 
 	useEffect(() => {
 		const updateTrack = () => setTrack(SpotiKit.Player.track);
@@ -85,7 +126,7 @@ export default function Visualizer({ popup = false, initialMode }: {
 			else await host.requestFullscreen();
 			if (settings.current) settings.current.open = false;
 		} catch {
-			SpotiKit.notify("Не удалось переключить полноэкранный режим.");
+			SpotiKit.notify("Could not switch fullscreen mode.");
 		}
 	}
 
@@ -109,7 +150,7 @@ export default function Visualizer({ popup = false, initialMode }: {
 		} catch (error) {
 			win?.close();
 			console.warn("[Visualizer] Could not open a window", error);
-			SpotiKit.notify("Клиент Spotify не смог открыть отдельное окно.");
+			SpotiKit.notify("Spotify could not open a separate window.");
 		}
 	}
 
@@ -128,9 +169,9 @@ export default function Visualizer({ popup = false, initialMode }: {
 			}}
 		>
 			<style>{css}</style>
-			{current?.data && !renderError && (
+			{rendererData && !renderError && (
 				<ErrorHandlerContext.Provider value={setRenderError}>
-					<Renderer key={`${uri}:${renderer}`} isEnabled trackData={current.data} />
+					<Renderer key={`${uri}:${renderer}`} isEnabled trackData={rendererData} />
 				</ErrorHandlerContext.Provider>
 			)}
 			{loading && <div className="spotikit-visualizer-status" role="status" aria-label="Загрузка аудиоанализа"><LoadingIcon /></div>}
@@ -141,29 +182,59 @@ export default function Visualizer({ popup = false, initialMode }: {
 				</div>
 			)}
 			<details className="spotikit-visualizer-controls" ref={settings}>
-				<summary aria-label="Настройки визуализатора" title="Настройки визуализатора">
+				<summary aria-label="Visualizer settings" title="Visualizer settings">
 					<svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor" aria-hidden="true">
 						<circle cx="5" cy="12" r="1.8" /><circle cx="12" cy="12" r="1.8" /><circle cx="19" cy="12" r="1.8" />
 					</svg>
 				</summary>
 				<div className="spotikit-visualizer-settings">
-					<label>Режим
+					<label>Mode
 						<select value={renderer} onChange={event => selectRenderer(event.currentTarget.value as RendererId)}>
 							{Object.entries(RENDERERS).map(([id, mode]) => <option key={id} value={id}>{mode.name}</option>)}
 						</select>
 					</label>
+					{renderer === "ncs" && (
+						<>
+							<label>
+								Use cover art color
+								<input
+									type="checkbox"
+									checked={useCoverColor}
+									onChange={event => {
+										const checked = event.currentTarget.checked;
+										changeSphereColorSettings({
+											customColor: checked ? customColor : pickerColor,
+											useCoverColor: checked
+										});
+									}}
+								/>
+							</label>
+							<label>
+								Sphere color
+								<input
+									type="color"
+									value={pickerColor}
+									disabled={useCoverColor}
+									onChange={event => changeSphereColorSettings({
+										customColor: event.currentTarget.value,
+										useCoverColor: false
+									})}
+								/>
+							</label>
+						</>
+					)}
 					<label>
 						<input type="checkbox" checked={correctLatency} onChange={event => {
 							const checked = event.currentTarget.checked;
 							setCorrectLatency(checked);
 							AudioSyncManager.setCorrectLatency(checked);
 						}} />
-						Компенсировать задержку
+						Compensate for audio latency
 					</label>
 					<button type="button" onClick={toggleFullscreen}>
-						{fullscreen ? "Выйти из полноэкранного режима" : "На весь экран"}
+						{fullscreen ? "Exit fullscreen" : "Enter fullscreen"}
 					</button>
-					{!popup && <button type="button" onClick={openWindow}>Открыть в отдельном окне</button>}
+					{!popup && <button type="button" onClick={openWindow}>Open in a separate window</button>}
 				</div>
 			</details>
 		</div>
