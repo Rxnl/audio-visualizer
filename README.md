@@ -9,7 +9,7 @@ A Spotify visualizer with NCS, Spectrum, and Debug modes. Ported to SpotiKit by 
 1. Extract the archive.
 2. In SpotiKit, open **Developer → Custom Apps** and copy the entire `visualizer` folder there. The manifest should be at `%APPDATA%\SpotiKit\Custom Apps\visualizer\spotikit.json`.
 3. In SpotiKit, click **Apply to Spotify**.
-4. In Spotify, click **Visualizer** in the top bar next to Marketplace, then play a track. Use the **⋯** menu to switch modes, enter fullscreen, or open the visualizer in a separate window.
+4. In Spotify, click **Visualizer** in the top bar next to Marketplace, then play a track. Use the **⋯** menu to switch modes, change color of NCS sphere, enter fullscreen, or open the visualizer in a separate window.
 
 The archive contains everything you need to install the app. [SpotiKit custom apps documentation](https://spotikit.com/docs/custom-apps)
 
@@ -21,6 +21,7 @@ The archive contains everything you need to install the app. [SpotiKit custom ap
 - Spectrum uses rhythm and pitch data. When rhythm data is unavailable, it displays 12 bars based on pitch.
 - Debug displays beats, bars, loudness, analysis confidence, timbre, pitch, and rhythm when available. Vocal activity and three-band waveform plots are unavailable in this port.
 - Opening the visualizer in a separate window requires pop-up or Picture-in-Picture support in the Spotify client.
+- If analysis is anavialable, NCS will play ambient animation.
 
 ## Building from source
 
