@@ -38,8 +38,7 @@ var Ge=SpotiKit.React,g=Ge,{createContext:Oe,useCallback:B,useContext:ue,useEffe
 	width: 40px;\r
 	height: 40px;\r
 	margin-left: auto;\r
-	border-radius: 50%;\r
-	background: #242424;\r
+	background: transparent;\r
 	cursor: pointer;\r
 	list-style: none;\r
 }\r
@@ -71,7 +70,7 @@ var Ge=SpotiKit.React,g=Ge,{createContext:Oe,useCallback:B,useContext:ue,useEffe
 	font: inherit;\r
 	cursor: pointer;\r
 }\r
-.spotikit-visualizer :is(button, select, summary):hover {\r
+.spotikit-visualizer :is(button, select):hover {\r
 	background: #484848;\r
 }\r
 .spotikit-visualizer:fullscreen.spotikit-visualizer--idle:not(:has(details[open], :focus-visible)) {\r

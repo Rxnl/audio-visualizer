@@ -38,8 +38,7 @@
 	width: 40px;
 	height: 40px;
 	margin-left: auto;
-	border-radius: 50%;
-	background: #242424;
+	background: transparent;
 	cursor: pointer;
 	list-style: none;
 }
@@ -71,7 +70,7 @@
 	font: inherit;
 	cursor: pointer;
 }
-.spotikit-visualizer :is(button, select, summary):hover {
+.spotikit-visualizer :is(button, select):hover {
 	background: #484848;
 }
 .spotikit-visualizer:fullscreen.spotikit-visualizer--idle:not(:has(details[open], :focus-visible)) {
