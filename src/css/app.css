@@ -1,0 +1,82 @@
+.spotikit-app:has(> .spotikit-visualizer) {
+	position: relative;
+	min-height: 100%;
+}
+.spotikit-visualizer {
+	position: absolute;
+	inset: 0;
+	min-height: 240px;
+	background: #080808;
+	color: #fff;
+	overflow: hidden;
+	font-family: var(--encore-body-font-stack, system-ui, sans-serif);
+}
+.spotikit-visualizer--popup {
+	position: fixed;
+}
+.spotikit-visualizer > canvas,
+.spotikit-visualizer-status {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+.spotikit-visualizer-status {
+	width: min(80%, 460px);
+	text-align: center;
+	font-size: clamp(16px, 3vw, 24px);
+	font-weight: 600;
+}
+.spotikit-visualizer-controls {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+}
+.spotikit-visualizer-controls summary {
+	display: grid;
+	place-items: center;
+	width: 40px;
+	height: 40px;
+	margin-left: auto;
+	border-radius: 50%;
+	background: #242424;
+	cursor: pointer;
+	list-style: none;
+}
+.spotikit-visualizer-controls summary::-webkit-details-marker {
+	display: none;
+}
+.spotikit-visualizer-settings {
+	display: grid;
+	gap: 12px;
+	margin-top: 8px;
+	padding: 14px;
+	border-radius: 8px;
+	background: #242424;
+	font-size: 14px;
+}
+.spotikit-visualizer-settings label {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	justify-content: space-between;
+}
+.spotikit-visualizer button,
+.spotikit-visualizer select {
+	border: 1px solid #717171;
+	border-radius: 6px;
+	padding: 6px 9px;
+	background: #353535;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+}
+.spotikit-visualizer :is(button, select, summary):hover {
+	background: #484848;
+}
+.spotikit-visualizer:fullscreen.spotikit-visualizer--idle:not(:has(details[open], :focus-visible)) {
+	cursor: none;
+}
+.spotikit-visualizer:fullscreen.spotikit-visualizer--idle details:not([open], :hover, :focus-within) {
+	opacity: 0;
+}

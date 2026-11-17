@@ -1,0 +1,10 @@
+{
+  "type": "app",
+  "name": "Visualizer",
+  "description": "Audio visualizer for the current Spotify track.",
+  "authors": [{ "name": "Konsl", "url": "https://github.com/Konsl" }],
+  "tags": ["visualizer"],
+  "main": "index.js",
+  "icon": "stats",
+  "activeIcon": "bar-chart"
+}

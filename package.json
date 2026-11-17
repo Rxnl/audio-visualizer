@@ -1,0 +1,14 @@
+{
+  "name": "spotikit-visualizer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild src/app.tsx --bundle --format=esm --target=chrome100 --minify --loader:.css=text --alias:react=./src/react.ts --legal-comments=none --outfile=index.js"
+  },
+  "dependencies": { "fflate": "0.8.2" },
+  "devDependencies": {
+    "@types/react": "18.3.18",
+    "@types/react-dom": "18.3.5",
+    "esbuild": "0.25.12"
+  }
+}
